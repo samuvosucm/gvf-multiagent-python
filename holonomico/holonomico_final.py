@@ -36,17 +36,26 @@ def grad_phi(xi):
 def tangent_vector(grad1, grad2):
     return np.cross(grad1, grad2)
 
+
+
 def normal_vector(xi, k=1.0):
     ph = phi(xi)
-    grad1, grad2 = grad_phi(xi)
-    return -k * (ph[0] * grad1 + ph[1] * grad2)
+    grads = grad_phi(xi)
 
-# definición del gvf generalizado
-def gvf_augmented(xi, k=1.0):
-    grad1, grad2 = grad_phi(xi)
-    V_tan = tangent_vector(grad1, grad2)
+    V = np.zeros(3)
+    for i in range(2):
+        V -= k * ph[i] * grads[i]
+
+    return V
+
+def gvf(xi, k=1.0):
+    grads = grad_phi(xi)
+
+    V_tan = np.cross(grads[0], grads[1])
     V_norm = normal_vector(xi, k)
+
     V = V_tan + V_norm
+
     return V / np.linalg.norm(V)
 
 # dibujamos el 8 como trayectoria
@@ -68,7 +77,7 @@ ax.legend()
 # función de actualización de agente
 def update_agent(frame):
     global xi
-    V = gvf_augmented(xi)
+    V = gvf(xi)
     xi += V * dt
     scatter.set_offsets([xi[0], xi[1]])
     return scatter,

@@ -10,11 +10,10 @@ import matplotlib.transforms as transforms
 r = 5
 dt = 0.1
 
-state = np.array([2.0, 0.0, 0.0])  # x, y, theta
+state = np.array([2.0, 0.0, 0.0])  # x, y, thetaz
 v = 1.0
-L = 2.5
 
-def gvf(pos_i, r, k=0.2):
+def gvf(pos_i, r, k=0.02):
     x, y = pos_i
     vector_tangente = np.array([-2*y, 2*x])
     phi = x**2 + y**2 - r**2
@@ -51,18 +50,20 @@ def update_agent(frame):
 
     x, y, theta = state
 
+    # dirección deseada (GVF)
     theta_d = gvf([x, y], r)
 
-    # calculamos el giro más corto
+    # error angular
     error_theta = np.arctan2(np.sin(theta_d - theta), np.cos(theta_d - theta))
 
-    # limitamos el giro a las posibilidades de un coche
-    phi = np.clip(error_theta, -np.pi/4, np.pi/4)
+    # velocidad angular para uniciclo
+    k_theta = 2.0
+    omega = k_theta * error_theta
 
-    # modelo cinemático Ackermann
+    # modelo cinemático de uniciclo
     x += v * np.cos(theta) * dt
     y += v * np.sin(theta) * dt
-    theta += v / L * np.tan(phi) * dt
+    theta += omega * dt
 
     state[:] = [x, y, theta]
 

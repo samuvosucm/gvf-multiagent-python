@@ -4,10 +4,10 @@ from matplotlib.animation import FuncAnimation
 
 # parámetros
 a = 5
-dt = 0.02
+dt = 0.001
 
 # posición inicial del agente
-pos = np.array([2.0, 0.0])  # shape (1,2)
+pos = np.array([1.0,0.0])  # shape (1,2)
 vel = np.zeros_like(pos)
 
 def F_8(x, y, a=a):
@@ -15,11 +15,11 @@ def F_8(x, y, a=a):
 
 def grad_F_8(x, y, a=None):
     dFdx = 2*x
-    dFdy = 8*y**3 - 8*y
+    dFdy = 16*y**3 - 8*y
     return np.array([dFdx, dFdy])
 
 # definición del gvf generalizado
-def gvf(pos_i, F, grad_F, k = 0.4):
+def gvf(pos_i, F, grad_F, k = 1):
     x, y = pos_i
 
     phi = F(x, y)
@@ -34,15 +34,17 @@ def gvf(pos_i, F, grad_F, k = 0.4):
     # vector resultado
     V = vector_normal + vector_tangente
 
-    # normalizamos el resultado para que no afecte su magnitud
-    V = V / np.linalg.norm(V)
-
+    # normalizamos el resulºtado para que no afecte su magnitud
+    norm = np.linalg.norm(V)
+    if norm != 0:
+        V = V / norm
+        
     return V
 
 # malla más densa
 X, Y = np.meshgrid(
-    np.linspace(-8, 8, 40),
-    np.linspace(-8, 8, 40)
+    np.linspace(-2, 2, 40),
+    np.linspace(-2, 2, 40)
 )
 
 # calcular GVF
@@ -58,15 +60,23 @@ for i in range(X.shape[0]):
 
 
 # dibujamos el 8 como trayectoria
+#Esta mal parametrizada
+#Lo cambio
+'''
 w = np.linspace(0, 2*np.pi, 400)
 x_8 = 2 * a * np.cos(w) * np.sin(w)
 y_8 = a * np.sin(w)
+'''
+w = np.linspace(0, 2*np.pi, 400)
+x_8 = np.sin(2*w)  # Esta es la forma natural de x^2 = 4y^2(1-y^2)
+y_8 = np.sin(w)
 
 fig, ax = plt.subplots(figsize=(8, 8))
 ax.quiver(X, Y, U, V, color='black')
 ax.plot(x_8, y_8, 'r', label='Trayectoria')
-ax.set_xlim(-10, 10)
-ax.set_ylim(-10, 10)
+
+ax.set_xlim(-2, 2)
+ax.set_ylim(-2, 2)
 ax.set_aspect('equal')
 ax.grid(True)
 
@@ -76,11 +86,12 @@ ax.legend()
 
 # función de actualización de agente
 def update_agent(frame):
+    speed=25;
     global pos
     # calcular GVF
     V = gvf(pos, F_8, grad_F_8) 
     # actualizar posición
-    pos += V * dt
+    pos += V * dt* speed
     scatter.set_offsets(pos)
     return scatter,
 
