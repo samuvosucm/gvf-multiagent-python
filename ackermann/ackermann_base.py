@@ -4,7 +4,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Polygon
 import matplotlib.transforms as transforms
 
-# ── Parámetros ──────────────────────────────────────────────────
+# parámetros
 a      = 5
 L      = 2.0
 v_ref  = 3.0
@@ -14,7 +14,7 @@ dt     = 0.05
 
 xi = np.array([2.0, 0.0, np.pi / 4, 0.0])
 
-# ── Geometría (derivada analítica — más estable que FD) ──────────
+# geometría
 def f(w):
     return np.array([a * np.sin(3*w), a * np.sin(2*w)])
 
@@ -22,7 +22,6 @@ def df_dw(w):                    # derivada analítica exacta
     return np.array([3*a * np.cos(3*w),
                      2*a * np.cos(2*w)])
 
-# ── GVF en espacio extendido (x, y, w) ──────────────────────────
 def phi(s):
     fx, fy = f(s[2])
     return np.array([s[0] - fx, s[1] - fy])
@@ -35,7 +34,6 @@ def grad_phi(s):
 def gvf(s, k=1.0):
     g1, g2 = grad_phi(s)
     ph     = phi(s)
-    # V_tan = cross(g1,g2) = [dfx, dfy, 1]  → nunca es cero (última componente = 1)
     V_tan  = np.cross(g1, g2)
     V_norm = -k * (ph[0]*g1 + ph[1]*g2)
     V = V_tan + V_norm
@@ -43,29 +41,23 @@ def gvf(s, k=1.0):
     # Fallback al tangente puro (norma ≥ 1 siempre) si algo sale mal
     return V / norm if norm > 1e-8 else V_tan / np.linalg.norm(V_tan)
 
-# ── Cinemática Ackermann + control robusto ────────────────────────
 def ackermann_step(xi):
     x, y, theta, w = xi
     s = np.array([x, y, w])
 
     V = gvf(s, k)
     vx, vy, _ = V
-
-    # ── Heading deseado (guard cuando xy_mag es pequeño) ──────────
     xy_mag = np.hypot(vx, vy)
-    if xy_mag > 0.05:                           # componente xy significativa
+    if xy_mag > 0.05:               
         theta_d = np.arctan2(vy, vx)
     else:
-        theta_d = theta                         # mantener heading actual
+        theta_d = theta                     
 
     e_theta = np.arctan2(np.sin(theta_d - theta),
                          np.cos(theta_d - theta))
 
     phi_s = np.clip(np.arctan(L * k_hdg * e_theta), -np.pi/3, np.pi/3)
 
-    # ── w_dot por proyección arco-longitud (ROBUSTO) ───────────────
-    # ẇ = ⟨v_xy, df/dw⟩ / |df/dw|²
-    # No depende del GVF → no explota en puntos singulares
     df   = df_dw(w)
     df_sq = max(np.dot(df, df), 1e-8)          # |df/dw|² ≥ ε
     v_xy = v_ref * np.array([np.cos(theta), np.sin(theta)])
@@ -78,7 +70,6 @@ def ackermann_step(xi):
         w_dot
     ])
 
-# ── Visualización ────────────────────────────────────────────────
 w_traj = np.linspace(0, 2*np.pi, 800)
 x_t, y_t = f(w_traj)
 

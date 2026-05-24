@@ -5,7 +5,7 @@ from matplotlib.patches import Polygon, Circle
 import matplotlib.transforms as transforms
 import cvxpy as cp
 
-# ── Parámetros ──────────────────────────────────────────────────
+# parámetros
 a      = 6
 L      = 2.0
 v_ref  = 3.0
@@ -13,7 +13,6 @@ k      = 1.0
 k_hdg  = 2.0
 dt     = 0.05
 
-# CBF params
 R_safe  = 1.5      # radio de seguridad (centro-centro)
 alpha   = 2.0      # ganancia clase-K
 v_max   = 3.0
@@ -30,7 +29,7 @@ priority = [1.0, 0.6]
 
 colors = ['tab:blue', 'tab:green']
 
-# ── Geometría (derivada analítica) ───────────────────────────────
+# geometría
 def f(w):
     x = a * np.cos(w) / (1 + np.sin(w)**2)
     y = a * np.sin(w) * np.cos(w) / (1 + np.sin(w)**2)
@@ -48,7 +47,6 @@ def df_dw(w):
 
     return np.array([dx, dy])
 
-# ── GVF en espacio extendido (x, y, w) ──────────────────────────
 def phi(s):
     fx, fy = f(s[2])
     return np.array([s[0] - fx, s[1] - fy])
@@ -67,7 +65,6 @@ def gvf(s, k=2.0):
     norm = np.linalg.norm(V)
     return V / norm if norm > 1e-8 else V_tan / np.linalg.norm(V_tan)
 
-# ── CBF multi-coche (QP) ─────────────────────────────────────────
 def cbf_ackermann_multi(i, states, v_des, phi_des,
                         R=1.5, alpha=2.0,
                         v_max=3.0, phi_max=np.pi/3):
@@ -112,7 +109,6 @@ def cbf_ackermann_multi(i, states, v_des, phi_des,
 
     return float(v.value), float(phi.value)
 
-#  Paso de un coche: GVF -> (v_des,phi_des) -> CBF -> dinámica 
 def ackermann_step_i(i, states):
     x, y, theta, w = states[i]
     s = np.array([x, y, w])
@@ -133,7 +129,6 @@ def ackermann_step_i(i, states):
     phi_des = np.clip(np.arctan(L * k_hdg * e_theta), -phi_max, phi_max)
     v_des = v_ref
 
-    # --- CBF (evita al otro coche) ---
     v_safe, phi_safe = cbf_ackermann_multi(
         i=i, states=states,
         v_des=float(v_des), phi_des=float(phi_des),
@@ -141,13 +136,11 @@ def ackermann_step_i(i, states):
         v_max=v_max, phi_max=phi_max
     )
 
-    # --- w_dot robusto (usa v_safe) ---
     df = df_dw(w)
     df_sq = max(np.dot(df, df), 1e-8)
     v_xy = v_safe * np.array([np.cos(theta), np.sin(theta)])
     w_dot = np.dot(v_xy, df) / df_sq
 
-    # --- dinámica Ackermann ---
     return np.array([
         v_safe * np.cos(theta),
         v_safe * np.sin(theta),
@@ -155,7 +148,6 @@ def ackermann_step_i(i, states):
         w_dot
     ])
 
-# ── Visualización ────────────────────────────────────────────────
 w_traj = np.linspace(0, 2*np.pi, 800)
 x_t, y_t = f(w_traj)
 

@@ -158,7 +158,6 @@ def ackermann_step_i(i, states):
         w_dot
     ])
 
-# ── VISUALIZACIÓN ───────────────────────────────────────────────
 w_traj = np.linspace(0, 2*np.pi, 800)
 x_t, y_t = f(w_traj)
 

@@ -4,9 +4,6 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Polygon
 import matplotlib.transforms as transforms
 
-# ==========================
-# Parámetros
-# ==========================
 r = 5
 dt = 0.1
 

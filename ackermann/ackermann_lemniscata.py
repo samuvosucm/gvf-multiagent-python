@@ -5,9 +5,7 @@ from matplotlib.patches import Polygon
 import matplotlib.transforms as transforms
 import cvxpy as cp
 
-# ==========================
-# PARAMETERS
-# ==========================
+# parámetros
 a = 8.0
 dt = 0.1
 L = 2.5
@@ -23,9 +21,6 @@ states = np.array([
 v_nominal = np.array([1.1, 2])
 R_safe = 1.5
 
-# ==========================
-# LEMNISCATA PARAMÉTRICA
-# ==========================
 def trajectory(w):
     x = a * np.cos(w) / (1 + np.sin(w)**2)
     y = a * np.sin(w) * np.cos(w) / (1 + np.sin(w)**2)
@@ -35,9 +30,6 @@ def dtrajectory_dw(w):
     eps = 1e-5
     return (trajectory(w + eps) - trajectory(w)) / eps
 
-# ==========================
-# GVF AUMENTADO
-# ==========================
 def gvf_augmented(x, y, w, k=1.0):
 
     xd, yd = trajectory(w)
@@ -60,9 +52,7 @@ def gvf_augmented(x, y, w, k=1.0):
     vw = np.dot([ex, ey], tangent)
 
     return np.array([V_xy[0], V_xy[1], vw])
-# ==========================
-# CBF
-# ==========================
+
 def cbf_ackermann(i, states, v_des, phi_des, L, R=1.5, alpha=2.0):
     x, y, w, theta = states[i]
 
@@ -109,9 +99,6 @@ def cbf_ackermann(i, states, v_des, phi_des, L, R=1.5, alpha=2.0):
     return v.value, phi.value
 
 
-# ==========================
-# FIGURE
-# ==========================
 t = np.linspace(0, 2*np.pi, 500)
 x = a * np.cos(t) / (1 + np.sin(t)**2)
 y = a * np.sin(t) * np.cos(t) / (1 + np.sin(t)**2)
@@ -133,9 +120,6 @@ for _ in range(len(states)):
     ax.add_patch(car)
     cars.append(car)
 
-# ==========================
-# UPDATE LOOP
-# ==========================
 def update(frame):
     global states
 
